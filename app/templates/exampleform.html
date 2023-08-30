@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if not current_user.is_authenticated %}
+
+<div class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Login</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Sign-Up</button>
+            </li>
+        </ul>
+    </div>
+
+<div class="tab-content" id="myTab" role="tablist">
+    <div class="tab-pane fade show active  p-5" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+        <h1 class="card-title">Login to your best traveling life</h1>
+        <form action="" method="post">
+        {{ form.csrf_token }}
+
+        {{ form.username.label }}
+        {{ form.username(class='form-control', placeholder='Enter Username') }}
+
+        {{ form.password.label }}
+        {{ form.password(class='form-control', placeholder='Enter Password') }}
+
+        {{ form.submit(class='btn btn-success mt-3')}}
+      </form>
+    </div>
+
+    <div class="tab-pane fade  p-5" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+        <h1 class="card-title">Are you ready for your next adventure?</h1>
+        <form action="" method="post">
+        {{ form2.csrf_token }}
+
+        {{ form2.first_name.label }}
+        {{ form2.first_name(class='form-control', placeholder='Enter First Name') }}
+
+        {{ form2.last_name.label }}
+        {{ form2.last_name(class='form-control', placeholder='Enter Last Name') }}
+
+        {{ form2.username.label }}
+        {{ form2.username(class='form-control', placeholder='Enter Username') }}
+
+        {{ form2.email.label }}
+        {{ form2.email(class='form-control', placeholder='Enter Email') }}
+
+        {{ form2.password.label }}
+        {{ form2.password(class='form-control', placeholder='Enter Password') }}
+
+        {{ form2.confirm_pass.label }}
+        {{ form2.confirm_pass(class='form-control', placeholder='Confirm Password') }}
+
+        {{ form2.submit(class='btn btn-success mt-3')}}
+      </form>
+    </div>
+   
+  </div>
+  
+  </div>
+
+{% endif %}
+
+
+ 
+{% if current_user.is_authenticated %}
+<div class="col-12"></div>
+  <div class="row align-items-center" style="min-height: 100vh">
+    <div class="col-1"></div>
+    <div class="col-12 col-lg-4">
+        <h1 class="title fw-bold name font">The moment is now</h1>
+        <p class="fs-5 fw-semibold text-body-tertiary my-4">Add countries to your wish list.</p>
+    </div>
+</div>
+
+
+{% endif %}
+
+
+</div>
+
+{% endblock content %}

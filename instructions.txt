@@ -1,0 +1,27 @@
+How to use this template folder
+
+--------------------------------------------------
+
+1. Create and activate virtual environment 
+
+$ python3 -m venv venv && . venv/bin/activate
+
+--------------------------------------------------
+
+2. Pip upgrade and install recursive requirements.txt 
+
+$ pip install --upgrade pip && pip3 install -r requirements.txt
+
+--------------------------------------------------
+
+3. Uncomment init, models, and routes
+
+--------------------------------------------------
+
+4. Create app.db
+
+$ flask db init && flask db migrate && flask db upgrade
+
+--------------------------------------------------
+
+5. Take out the dash (--) before the DATABASE URI when ready to use elephantSQL
