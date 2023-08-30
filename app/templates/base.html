@@ -10,6 +10,9 @@
 <body>
 
     <div class="container-fluid">
+
+        {% include 'nav.html' %}
+        
         <div class="row">
             <div class="col">
                 {% include 'alerts.html' %}
@@ -25,7 +28,7 @@
         <div class="col-1"></div>
     </div>
 
-    {% include 'nav.html' %}
+    
     </div>
 
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
