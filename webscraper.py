@@ -1,18 +1,11 @@
 from bs4 import BeautifulSoup
 import requests
-import re
 
 url = 'https://hymnary.org/hymn/GG2013/726'
 result = requests.get(url).text
 doc = BeautifulSoup(result, 'html.parser')
 
-
-# first_line = doc.find(class_='hy_infoItem').string
-
 trs = doc.find_all(class_='result-row')
-# print((trs[0].parent).contents[3])
-
-# (trs[0].parent).contents[3] == First Line: && O Jesus, I have promised && and link (https://hymnary.org/text/o_jesus_i_have_promised)
 
 info = {}
 scriptures = []
@@ -23,10 +16,10 @@ for tr in trs:
             info[key_name] = td[2].span.string
         elif key_name == 'Scripture:':
             for i in range(len(td[2].span.contents)):
-                 scripture_values = td[2].span.contents[i].string
-                 if '; ' in scripture_values:
-                     pass
-                 else:
+                scripture_values = td[2].span.contents[i].string
+                if '; ' in scripture_values:
+                    pass
+                else:
                     scriptures.append(scripture_values)
                     info[key_name] = scriptures
         elif key_name == 'Topic:':
@@ -37,6 +30,15 @@ for tr in trs:
             info[key_name] = td[2].a.string
     
 print(info)
+
+text = doc.find('div', id = "text")
+
+print(text)
+
+# Create a Hymn Model
+# Use the information to create a new Hymn to your database
+#   If data is tune, change that key to 'tune name' like Sarah did in the pokemon app
+# db.add and db.commit
 
 
 info = {
