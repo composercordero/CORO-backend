@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
 
+# url = f'https://hymnary.org/hymn/{hymnal}/{number}'
+
 url = 'https://hymnary.org/hymn/GG2013/726'
 result = requests.get(url).text
 doc = BeautifulSoup(result, 'html.parser')
@@ -30,16 +32,6 @@ for tr in trs:
             info[key_name] = td[2].a.string
     
 print(info)
-
-text = doc.find('div', id = "text")
-
-print(text)
-
-# Create a Hymn Model
-# Use the information to create a new Hymn to your database
-#   If data is tune, change that key to 'tune name' like Sarah did in the pokemon app
-# db.add and db.commit
-
 
 info = {
     'First Line:': 'Will you come and follow me if I but call your name?', 

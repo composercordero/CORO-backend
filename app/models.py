@@ -15,7 +15,7 @@ class Conductor(db.Model, UserMixin):
     date_created = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
     token = db.Column(db.String(32), index = True, unique = True)
     token_expiration = db.Column(db.DateTime)
-    # organization_id = db.Column(db.Integer, db.ForeignKey('organization.id')) 
+    organization = db.relationship('Organization', backref = 'author', cascade = 'delete')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -55,9 +55,11 @@ class Conductor(db.Model, UserMixin):
 class Organization(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
+    phone = db.Column(db.String(15))
     email = db.Column(db.String, nullable = False)
     website = db.Column(db.String(75), nullable = False, unique = True)
-    # conductor = db.relationship('Conductor', backref = 'conductor', cascade = 'delete')
+    conductor_id = db.Column(db.Integer, db.ForeignKey('conductor.id')) 
+    choir = db.relationship('Choir', backref = 'organization', cascade = 'delete')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -75,7 +77,8 @@ class Organization(db.Model, UserMixin):
 class Choir(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
-    # organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable = Fals`e)
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable = False)
+    hymns = db.relationship('Hymn', backref = 'choir', cascade = 'delete')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -108,3 +111,68 @@ class Address(db.Model, UserMixin):
             'name': self.name,
             'website': self.website,
         }
+
+class Hymn(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    first_line = db.Column(db.String(100), nullable = False)
+    title = db.Column(db.String(50), nullable = False)
+    author = db.Column(db.String(50), nullable = False)
+    meter = db.Column(db.String(50), nullable = False)
+    language = db.Column(db.String(50), nullable = False)
+    pub_date = db.Column(db.String(4), nullable = False)
+    copyright = db.Column(db.String(200))
+    tune_name = db.Column(db.String(20), nullable = False)
+    arranger = db.Column(db.String(50))
+    key = db.Column(db.String(5))
+    source = db.Column(db.String(100))
+    audio_rec = db.Column(db.String(200))
+    choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Hymn {self.id} | {self.title} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'First Line:': self.first_line, 
+            'Title:': self.title, 
+            'Author:': self.author, 
+            'Meter:': self.meter, 
+            'Language:': self.language, 
+            'Publication Date:': self.pub_date, 
+            'Copyright:': self.copyright, 
+            'Tune Name:': self.tune_name, 
+            'Arranger:': self.arranger, 
+            'Key:': self.key, 
+            'Source:': self.source, 
+            'Audio recording:' : self.audio_rec, 
+            }
+    
+hymn_topic = db.Table(
+    'hymn_topic', 
+    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
+    db.Column('topic_id', db.Integer, db.ForeignKey('topic.id'))
+    )
+
+class Topic(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    topic = db.Column(db.String(50), nullable = False)
+    hymns = db.relationship('Hymn', secondary = hymn_topic, backref = 'topics')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Address {self.id} | {self.topic} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'Topic:': self.topic, 
+            }
+    
+
+
