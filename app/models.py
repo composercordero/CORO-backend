@@ -15,8 +15,7 @@ class Conductor(db.Model, UserMixin):
     date_created = db.Column(db.DateTime, nullable = False, default = datetime.utcnow)
     token = db.Column(db.String(32), index = True, unique = True)
     token_expiration = db.Column(db.DateTime)
-
-    # visited = db.relationship('Visited', backref = 'author', cascade = 'delete')
+    # organization_id = db.Column(db.Integer, db.ForeignKey('organization.id')) 
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -52,3 +51,60 @@ class Conductor(db.Model, UserMixin):
     @login.user_loader
     def load_user(user_id):
         return db.session.get(Conductor, user_id)
+    
+class Organization(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(100), nullable = False)
+    email = db.Column(db.String, nullable = False)
+    website = db.Column(db.String(75), nullable = False, unique = True)
+    # conductor = db.relationship('Conductor', backref = 'conductor', cascade = 'delete')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Organization {self.id} | {self.name} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'website': self.website,
+        }
+    
+class Choir(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(100), nullable = False)
+    # organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'), nullable = Fals`e)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Address {self.id} | {self.address_one} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }
+    
+class Address(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    address_one = db.Column(db.String(100), nullable = False)
+    address_two = db.Column(db.String(100))
+    city = db.Column(db.String(30), nullable = False)
+    zip_code = db.Column(db.String(10), nullable = False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Address {self.id} | {self.address_one} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'website': self.website,
+        }
