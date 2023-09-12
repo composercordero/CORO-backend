@@ -90,6 +90,7 @@ def delete_user():
 # CREATE ORGANIZATION --------------------------------
 
 @api.route('/orgs', methods=['POST'])
+@basic_auth.login_required
 def create_organization():
     if not request.is_json:
         return{'error': 'Your content-type must be application/json'}, 400
@@ -106,9 +107,9 @@ def create_organization():
     phone = data.get('phone')
     email = data.get('email')
     website = data.get('website')
+    current_user = basic_auth.current_user()
 
     check_org = db.session.execute(db.select(Organization).where((Organization.name == name))).scalar()
-
     if check_org:
         {'error': f'A user with that username and/or email already exists'}, 400
 
@@ -142,6 +143,24 @@ def edit_organization(org_id):
             setattr(org, field, data[field])
     db.session.commit()
     return org.to_dict()
+
+# DELETE ORGANIZATION --------------------------------
+
+@api.route('/orgs/<org_id>', methods=['DELETE'])
+@token_auth.login_required
+def delete_organization(org_id):    
+    org = db.session.get(Organization, org_id)
+
+    if org_id is None:
+        return {'error': f'Organization with an ID of {org_id} does not exist'}, 404
+    current_user = token_auth.current_user()
+
+    if org.conductor_id != current_user.id:
+        return {'error': f'User with user id {current_user.id} do not have permission to delete this post'}, 403
+
+    db.session.delete(org)
+    db.session.commit()
+    return {'success': f"{org.name} has been deleted"}
 
 # CREATE CHOIR --------------------------------
 
@@ -189,7 +208,26 @@ def edit_choir(choir_id):
         setattr(choir, 'name', data['name'])
 
     db.session.commit()
-    return choir.to_dict()
+    return choir.to_dict(), 201
+
+# DELETE CHOIR --------------------------------
+
+@api.route('/choirs/<choir_id>', methods=['DELETE'])
+@token_auth.login_required
+def delete_choir(choir_id):    
+    choir = db.session.get(Choir, choir_id)
+
+    if choir_id is None:
+        return {'error': f'Organization with an ID of {choir_id} does not exist'}, 404
+    current_user = token_auth.current_user()
+
+    if choir.conductor_id != current_user.id:
+        return {'error': f'User with user id {current_user.id} do not have permission to delete this post'}, 403
+
+    db.session.delete(choir)
+    db.session.commit()
+    return {'success': f"{choir.name} has been deleted"}
+
 
 # CREATE HYMN --------------------------------
 
@@ -233,3 +271,4 @@ def create_hymn():
     db.session.commit()
 
     return new_hymn.to_dict(),201
+

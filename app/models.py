@@ -126,6 +126,8 @@ class Hymn(db.Model, UserMixin):
     key = db.Column(db.String(5))
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
+
+    # Foreign Key
     choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
 
     def __init__(self, **kwargs):
@@ -150,7 +152,7 @@ class Hymn(db.Model, UserMixin):
             'Source:': self.source, 
             'Audio recording:' : self.audio_rec, 
             }
-    
+
 hymn_topic = db.Table(
     'hymn_topic', 
     db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
@@ -166,13 +168,35 @@ class Topic(db.Model, UserMixin):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"< Address {self.id} | {self.topic} >"
+        return f"< Topic {self.id} | {self.topic} >"
 
     def to_dict(self):
         return {
             'id': self.id,
             'Topic:': self.topic, 
             }
-    
+
+hymn_service_date = db.Table(
+    'hymn_sunday', 
+    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
+    db.Column('service_id', db.Integer, db.ForeignKey('service.id'))
+    )
+
+class Service(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    date = db.Column(db.String(10), nullable = False)
+    service_date = db.relationship('Hymn', secondary = hymn_service_date, backref = 'service_date')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Service {self.id} | {self.date} >"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'Service Date:': self.date, 
+            }
 
 
