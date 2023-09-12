@@ -133,7 +133,7 @@ class Hymn(db.Model, UserMixin):
     key = db.Column(db.String(5))
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
-    topics = db.relationship('Topic', secondary = hymn_topic, backref = 'hymn')
+    # topics = db.relationship('Topic', secondary = hymn_topic, backref = 'hymn')
 
     # Foreign Key
     choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
@@ -164,7 +164,7 @@ class Hymn(db.Model, UserMixin):
 class Topic(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     topic = db.Column(db.String(50), nullable = False)
-    hymns = db.relationship('Hymn', secondary = hymn_topic)
+    hymns = db.relationship('Hymn', secondary = hymn_topic, backref='topics')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -16,7 +16,7 @@ def get_token():
     return {'token': token,
             'token_exp': auth_user.token_expiration}
 
-# GET USER = ME --------------------------------
+# GET USER = ME --------------------------------------------------
 
 @api.route('/users/me')
 @token_auth.login_required
@@ -24,7 +24,7 @@ def get_me():
     me = token_auth.current_user()
     return me.to_dict()
 
-# CREATE USER --------------------------------
+# CREATE USER --------------------------------------------------
 
 @api.route('/users', methods=['POST'])
 def create_user():
@@ -57,7 +57,7 @@ def create_user():
 
     return new_user.to_dict(),201
 
-# LOGIN USER --------------------------------
+# LOGIN USER --------------------------------------------------
 
 @api.route('/login', methods=["GET"])
 @basic_auth.login_required
@@ -65,7 +65,7 @@ def login_user():
     logged_in_user = basic_auth.current_user()
     return logged_in_user.to_dict(),201
 
-# EDIT USER --------------------------------
+# EDIT USER --------------------------------------------------
 
 @api.route('/users', methods=["PUT"])
 @token_auth.login_required
@@ -78,7 +78,7 @@ def edit_user():
     db.session.commit()
     return auth_user.to_dict(),201
 
-# DELETE USER --------------------------------
+# DELETE USER --------------------------------------------------
 
 @api.route('/users', methods=["DELETE"])
 @token_auth.login_required
@@ -88,7 +88,7 @@ def delete_user():
     db.session.commit()
     return {'success': f"{auth_user.first_name} has been deleted"}, 201
 
-# CREATE ORGANIZATION --------------------------------
+# CREATE ORGANIZATION --------------------------------------------------
 
 @api.route('/orgs', methods=['POST'])
 @basic_auth.login_required
@@ -121,7 +121,7 @@ def create_organization():
 
     return new_org.to_dict(),201
 
-# EDIT ORGANIZATION --------------------------------
+# EDIT ORGANIZATION --------------------------------------------------
 
 @api.route('/orgs/<org_id>', methods=['PUT'])
 @token_auth.login_required
@@ -135,8 +135,8 @@ def edit_organization(org_id):
         return {'error': f'Organization with an ID of {org_id} does not exist'}, 404
     current_user = token_auth.current_user()
 
-    # if org.conductor_id != current_user:
-    #         return {'error': 'You do not have permission to edit this organization.'}, 403
+    if org.conductor_id != current_user.id:
+            return {'error': 'You do not have permission to edit this organization.'}, 403
 
     data = request.json
     for field in data:
@@ -145,7 +145,7 @@ def edit_organization(org_id):
     db.session.commit()
     return org.to_dict()
 
-# DELETE ORGANIZATION --------------------------------
+# DELETE ORGANIZATION --------------------------------------------------
 
 @api.route('/orgs/<org_id>', methods=['DELETE'])
 @token_auth.login_required
@@ -334,13 +334,14 @@ def find_hymn(hymn_id):
 
     new_hymn = Hymn(first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id,)
 
-    # Create Relationship for hymn_topic table
-
-    # for topic in info.get('Topic:'):
-    #     selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
-    #     new_hymn.topics.append(selected_topic)
-
     db.session.add(new_hymn)
+
+    # Create Relationship for hymn_topic table
+    for topic in info.get('Topic:'):
+        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic.strip()))).scalar()
+        print(selected_topic)
+        new_hymn.topics.append(selected_topic)
+
     db.session.commit()
 
     return new_hymn.to_dict(),201
