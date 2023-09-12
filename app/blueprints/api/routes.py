@@ -3,7 +3,8 @@ from app import db
 from app.models import Conductor, Organization, Choir, Hymn
 from flask import request
 from .auth import basic_auth, token_auth
-from flask_login import current_user
+from bs4 import BeautifulSoup
+import requests
 
 # GET USER TOKEN --------------------------------
 
@@ -271,4 +272,76 @@ def create_hymn():
     db.session.commit()
 
     return new_hymn.to_dict(),201
+
+# CREATE WEBSCRAPE HYMN --------------------------------
+
+@api.route('/hymns/<hymn_id>', methods=['POST'])
+@token_auth.login_required
+def find_hymn(hymn_id):
+
+    url = f'https://hymnary.org/hymn/GG2013/{hymn_id}'
+    result = requests.get(url).text
+    doc = BeautifulSoup(result, 'html.parser')
+
+    trs = doc.find_all(class_='result-row')
+
+    info = {}
+    scriptures = []
+    for tr in trs:
+        for td in [tr.contents]:
+            key_name = td[0].span.string
+            if td[2].span.string:
+                info[key_name] = td[2].span.string
+            elif key_name == 'Scripture:':
+                for i in range(len(td[2].span.contents)):
+                    scripture_values = td[2].span.contents[i].string
+                    if '; ' in scripture_values:
+                        pass
+                    else:
+                        scriptures.append(scripture_values)
+                        info[key_name] = scriptures
+            elif key_name == 'Topic:':
+                info[key_name] = f'{td[2].span.contents[0].string} {td[2].span.span.string}'.split('; ')
+            elif key_name == 'Audio recording:':
+                info[key_name] = td[2].a.get('href')
+            else:
+                info[key_name] = td[2].a.string
+
+    if info == {}:
+        return {'error': f'Hymn with hymn id {hymn_id} does not exist'}, 403
+
+    current_user = token_auth.current_user()
+    # Select a choir created by current user
+
+    first_line = info.get('First Line:')
+    title = info.get('Title:')
+    author = info.get('Author:')
+    meter = info.get('Meter:')
+    language = info.get('Language:')
+    pub_date = info.get('Publication Date:')
+    copyright = info.get('Copyright:')
+    tune_name = info.get('Name:')
+    arranger = info.get('Arranger:')
+    key = info.get('Key:')
+    source = info.get('Source:')
+    audio_rec = info.get('Audio recording:')
+    choir_id =  1
+    
+    check_hymn = db.session.execute(db.select(Hymn).where((Hymn.title == title))).scalar()
+
+    if check_hymn:
+        {'error': f'A hymn with that title already'}, 400
+
+    new_hymn = Hymn(first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id,)
+
+    db.session.add(new_hymn)
+    db.session.commit()
+
+    return new_hymn.to_dict(),201
+
+
+
+
+
+
 

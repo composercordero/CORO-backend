@@ -3,7 +3,7 @@ import requests
 
 # url = f'https://hymnary.org/hymn/{hymnal}/{number}'
 
-url = 'https://hymnary.org/hymn/GG2013/726'
+url = 'https://hymnary.org/hymn/GG2013/1500'
 result = requests.get(url).text
 doc = BeautifulSoup(result, 'html.parser')
 
