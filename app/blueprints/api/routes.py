@@ -1,6 +1,6 @@
 from . import api
 from app import db
-from app.models import Conductor, Organization, Choir, Hymn
+from app.models import Conductor, Organization, Choir, Hymn, Topic
 from flask import request
 from .auth import basic_auth, token_auth
 from bs4 import BeautifulSoup
@@ -333,6 +333,12 @@ def find_hymn(hymn_id):
         {'error': f'A hymn with that title already'}, 400
 
     new_hymn = Hymn(first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id,)
+
+    # Create Relationship for hymn_topic table
+
+    # for topic in info.get('Topic:'):
+    #     selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
+    #     new_hymn.topics.append(selected_topic)
 
     db.session.add(new_hymn)
     db.session.commit()

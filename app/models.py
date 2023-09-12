@@ -112,6 +112,13 @@ class Address(db.Model, UserMixin):
             'website': self.website,
         }
 
+
+hymn_topic = db.Table(
+    'hymn_topic', 
+    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
+    db.Column('topic_id', db.Integer, db.ForeignKey('topic.id'))
+    )
+
 class Hymn(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     first_line = db.Column(db.String(100), nullable = False)
@@ -126,6 +133,7 @@ class Hymn(db.Model, UserMixin):
     key = db.Column(db.String(5))
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
+    topics = db.relationship('Topic', secondary = hymn_topic, backref = 'hymn')
 
     # Foreign Key
     choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
@@ -153,16 +161,10 @@ class Hymn(db.Model, UserMixin):
             'Audio recording:' : self.audio_rec, 
             }
 
-hymn_topic = db.Table(
-    'hymn_topic', 
-    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
-    db.Column('topic_id', db.Integer, db.ForeignKey('topic.id'))
-    )
-
 class Topic(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     topic = db.Column(db.String(50), nullable = False)
-    hymns = db.relationship('Hymn', secondary = hymn_topic, backref = 'topics')
+    hymns = db.relationship('Hymn', secondary = hymn_topic)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
