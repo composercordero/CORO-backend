@@ -3,7 +3,7 @@ import requests
 
 # url = f'https://hymnary.org/hymn/{hymnal}/{number}'
 
-url = 'https://hymnary.org/hymn/GG2013/1500'
+url = 'https://hymnary.org/hymn/GG2013/723'
 result = requests.get(url).text
 doc = BeautifulSoup(result, 'html.parser')
 
@@ -25,7 +25,7 @@ for tr in trs:
                     scriptures.append(scripture_values)
                     info[key_name] = scriptures
         elif key_name == 'Topic:':
-            info[key_name] = f'{td[2].span.contents[0].string} {td[2].span.span.string}'.split('; ')
+            info[key_name] = f'{td[2].span.contents[0].string}{td[2].span.span.string}'.split('; ')
         elif key_name == 'Audio recording:':
             info[key_name] = td[2].a.get('href')
         else:
@@ -41,7 +41,7 @@ info = {
     'Language:': 'English', 
     'Publication Date:': '2013', 
     'Scripture:': ['Isaiah 6:8', 'Matthew 4:19', 'Matthew 8:22', 'Matthew 16:24-26', 'Matthew 19:27-30', 'Mark 1:16-21', 'Mark 8:34-38', 'Luke 5:1-11', 'Luke 9:23-26', 'Luke 9:61-62', 'Luke 19:1-10', 'John 1:41-42', 'John 10:27-30', 'John 12:24-26', 'John 20:21', 'John 21:15-19'], 
-    'Topic:': ['Commitment', 'Discipleship and Mission', 'Invitation ', 'Ministry', 'Service'], 
+    'Topic:': ['Commitment', 'Discipleship and Mission', 'Invitation', 'Ministry', 'Service'], 
     'Copyright:': 'Arr. © 1987 WGRG, Iona Community (admin. GIA Publications, Inc.)', 
     'Name:': 'KELVINGROVE', 
     'Arranger:': 'John L. Bell', 

@@ -1,6 +1,6 @@
 from . import api
 from app import db
-from app.models import Conductor, Organization, Choir, Hymn, Topic
+from app.models import Conductor, Organization, Choir, Hymn, Service, Topic, Tune
 from flask import request
 from .auth import basic_auth, token_auth
 from bs4 import BeautifulSoup
@@ -91,7 +91,7 @@ def delete_user():
 # CREATE ORGANIZATION --------------------------------------------------
 
 @api.route('/orgs', methods=['POST'])
-@basic_auth.login_required
+@token_auth.login_required
 def create_organization():
     if not request.is_json:
         return{'error': 'Your content-type must be application/json'}, 400
@@ -108,7 +108,7 @@ def create_organization():
     phone = data.get('phone')
     email = data.get('email')
     website = data.get('website')
-    current_user = basic_auth.current_user()
+    current_user = token_auth.current_user()
 
     check_org = db.session.execute(db.select(Organization).where((Organization.name == name))).scalar()
     if check_org:
@@ -134,7 +134,7 @@ def edit_organization(org_id):
     if org is None:
         return {'error': f'Organization with an ID of {org_id} does not exist'}, 404
     current_user = token_auth.current_user()
-
+    
     if org.conductor_id != current_user.id:
             return {'error': 'You do not have permission to edit this organization.'}, 403
 
@@ -166,20 +166,22 @@ def delete_organization(org_id):
 # CREATE CHOIR --------------------------------
 
 @api.route('/choirs', methods=['POST'])
+@token_auth.login_required
 def create_choir():
     if not request.is_json:
         return{'error': 'Your content-type must be application/json'}, 400
     data = request.json
 
     name = data.get('name')
-    org = data.get('organization_id')
+    current_user = token_auth.current_user()
+    current_organization = db.session.execute(db.select(Organization).where(Organization.conductor_id == current_user.id)).scalar()
     
     check_choir = db.session.execute(db.select(Choir).where((Choir.name == name))).scalar()
 
     if check_choir:
-        {'error': f'A choir with that name already exists in your organization'}, 400
+        return {'error': f'A choir with that name already exists in your organization'}, 400
 
-    new_choir = Choir(name = name, organization_id = org)
+    new_choir = Choir(name = name, organization_id = current_organization.id)
 
     db.session.add(new_choir)
     db.session.commit()
@@ -200,8 +202,8 @@ def edit_choir(choir_id):
         return {'error': f'Organization with an ID of {choir_id} does not exist'}, 404
     current_user = token_auth.current_user()
 
-    # if choir.conductor_id != current_user:
-    #         return {'error': 'You do not have permission to edit this choir.'}, 403
+    if choir.conductor_id != current_user:
+            return {'error': 'You do not have permission to edit this choir.'}, 403
 
     data = request.json
 
@@ -233,9 +235,12 @@ def delete_choir(choir_id):
 # CREATE HYMN --------------------------------
 
 @api.route('/hymns', methods=['POST'])
+@token_auth.login_required
 def create_hymn():
     if not request.is_json:
         return{'error': 'Your content-type must be application/json'}, 400
+    current_user = token_auth.current_user()
+    
     data = request.json
 
     required_fields = ["first_line", "title", "author", "meter", "language", "pub_date", "copyright", "tune_name"]
@@ -264,7 +269,7 @@ def create_hymn():
     check_hymn = db.session.execute(db.select(Hymn).where((Hymn.title == title))).scalar()
 
     if check_hymn:
-        {'error': f'A hymn with that title already'}, 400
+        return {'error': f'A hymn with that title already'}, 400
 
     new_hymn = Hymn(id = id, first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id,)
 
@@ -273,7 +278,7 @@ def create_hymn():
 
     return new_hymn.to_dict(),201
 
-# CREATE WEBSCRAPE HYMN --------------------------------
+# CREATE WEB SCRAPE HYMN --------------------------------
 
 @api.route('/hymns/<hymn_id>', methods=['POST'])
 @token_auth.login_required
@@ -301,7 +306,7 @@ def find_hymn(hymn_id):
                         scriptures.append(scripture_values)
                         info[key_name] = scriptures
             elif key_name == 'Topic:':
-                info[key_name] = f'{td[2].span.contents[0].string} {td[2].span.span.string}'.split('; ')
+                info[key_name] = f'{td[2].span.contents[0].string}{td[2].span.span.string}'.split('; ')
             elif key_name == 'Audio recording:':
                 info[key_name] = td[2].a.get('href')
             else:
@@ -311,8 +316,11 @@ def find_hymn(hymn_id):
         return {'error': f'Hymn with hymn id {hymn_id} does not exist'}, 403
 
     current_user = token_auth.current_user()
+    current_organization = db.session.execute(db.select(Organization).where(Organization.conductor_id == current_user.id)).scalar()
+    current_choir = db.session.execute(db.select(Choir).where(Choir.organization_id == current_organization.id)).scalar()
     # Select a choir created by current user
 
+    hymnal_number = hymn_id
     first_line = info.get('First Line:')
     title = info.get('Title:')
     author = info.get('Author:')
@@ -325,21 +333,26 @@ def find_hymn(hymn_id):
     key = info.get('Key:')
     source = info.get('Source:')
     audio_rec = info.get('Audio recording:')
-    choir_id =  1
+    choir_id =  current_choir.id
     
     check_hymn = db.session.execute(db.select(Hymn).where((Hymn.title == title))).scalar()
 
     if check_hymn:
-        {'error': f'A hymn with that title already'}, 400
+        return {'error': f'A hymn with that title already'}, 400
+    
+    new_tune = Tune(tune_name=tune_name)
+    db.session.add(new_tune)
+    db.session.commit()
 
-    new_hymn = Hymn(first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id,)
+    selected_tune = db.session.execute(db.select(Tune).where(Tune.tune_name == info.get('Name:'))).scalar()
+
+    new_hymn = Hymn(hymnal_number = hymnal_number, first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id, tune_id = selected_tune.id)
 
     db.session.add(new_hymn)
 
     # Create Relationship for hymn_topic table
     for topic in info.get('Topic:'):
-        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic.strip()))).scalar()
-        print(selected_topic)
+        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
         new_hymn.topics.append(selected_topic)
 
     db.session.commit()
@@ -347,8 +360,25 @@ def find_hymn(hymn_id):
     return new_hymn.to_dict(),201
 
 
+# PROGRAM HYMNS --------------------------------
 
+@api.route('/program/<service_id>/<hymn_id>', methods=['POST'])
+@token_auth.login_required
+def program_hymn(service_id, hymn_id):
+    current_user = token_auth.current_user()
+    
+    selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
+    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.id == hymn_id)).scalar()
+    print(hymn_id)
+    if not selected_service:
+        return {'error': f'Service with an id of {service_id} does not exist'}, 400
+    if not selected_hymn:
+        return {'error': f'Hymn with an id of {hymn_id} does not exist'}, 400
 
+    selected_service.service_date.append(selected_hymn)
 
+    db.session.commit()
+
+    return selected_service.to_dict(),201
 
 
