@@ -84,7 +84,7 @@ class Choir(db.Model, UserMixin):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"< Address {self.id} | {self.address_one} >"
+        return f"< Choir {self.id} | {self.address_one} >"
 
     def to_dict(self):
         return {
@@ -97,6 +97,7 @@ class Address(db.Model, UserMixin):
     address_one = db.Column(db.String(100), nullable = False)
     address_two = db.Column(db.String(100))
     city = db.Column(db.String(30), nullable = False)
+    state = db.Column(db.String(30), nullable = False)
     zip_code = db.Column(db.String(10), nullable = False)
 
     def __init__(self, **kwargs):
@@ -108,8 +109,10 @@ class Address(db.Model, UserMixin):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.name,
-            'website': self.website,
+            'address one': self.address_one,
+            'city': self.city,
+            'state': self.state,
+            'zip code': self.zip_code
         }
 
 hymn_topic = db.Table(

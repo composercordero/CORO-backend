@@ -1,6 +1,6 @@
 from . import api
 from app import db
-from app.models import Conductor, Organization, Choir, Hymn, Service, Topic, Tune
+from app.models import Address, Conductor, Organization, Choir, Hymn, Service, Topic, Tune
 from flask import request
 from .auth import basic_auth, token_auth
 from bs4 import BeautifulSoup
@@ -87,6 +87,40 @@ def delete_user():
     db.session.delete(auth_user)
     db.session.commit()
     return {'success': f"{auth_user.first_name} has been deleted"}, 201
+
+
+# CREATE ADDRESS --------------------------------------------------
+
+@api.route('/address', methods=['POST'])
+def create_address():
+    if not request.is_json:
+        return{'error': 'Your content-type must be application/json'}, 400
+    data = request.json
+    required_fields = ['addressOne','city','state', 'zipCode']
+    missing_fields = []
+    for field in required_fields:
+        if field not in data:
+            missing_fields.append(field)
+        if missing_fields:
+            return {'error': f"{', '.join(missing_fields)} must be in the request body"}, 400
+        
+    address_one = data.get('addressOne')
+    address_two = data.get('addressTwo')
+    city = data.get('city')
+    state = data.get('state')
+    zip_code = data.get('zipCode')
+
+    check_user = db.session.execute(db.select(Address).where((Address.address_one == address_one))).scalar()
+
+    if check_user:
+        {'error': f'A user with that username and/or email already exists'}, 400
+
+    new_address = Address(address_one = address_one, address_two = address_two, city = city, state = state, zip_code = zip_code)
+
+    db.session.add(new_address)
+    db.session.commit()
+
+    return new_address.to_dict(),201
 
 # CREATE ORGANIZATION --------------------------------------------------
 
