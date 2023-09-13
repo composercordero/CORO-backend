@@ -96,7 +96,7 @@ def create_address():
     if not request.is_json:
         return{'error': 'Your content-type must be application/json'}, 400
     data = request.json
-    required_fields = ['addressOne','city','state', 'zipCode']
+    required_fields = ['addressOne', 'city', 'state', 'zipCode']
     missing_fields = []
     for field in required_fields:
         if field not in data:
@@ -121,6 +121,12 @@ def create_address():
     db.session.commit()
 
     return new_address.to_dict(),201
+
+
+# EDIT ADDRESS ---------------------------------------------------------
+
+# How should I select the address that belongs to this user's organization? An Organization ID FK on address?
+
 
 # CREATE ORGANIZATION --------------------------------------------------
 
