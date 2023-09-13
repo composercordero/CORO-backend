@@ -1,6 +1,6 @@
 from . import api
 from app import db
-from app.models import Address, Conductor, Organization, Choir, Hymn, Service, Topic, Tune
+from app.models import Address, Conductor, Organization, Choir, Hymn, Program, Service, Topic, Tune
 from flask import request
 from .auth import basic_auth, token_auth
 from bs4 import BeautifulSoup
@@ -41,8 +41,8 @@ def create_user():
         
     first_name = data.get('firstName')
     last_name = data.get('lastName')
-    username = data.get('username')
     email = data.get('email')
+    username = data.get('username')
     password = data.get('password')
 
     check_user = db.session.execute(db.select(Conductor).where((Conductor.username == username) | (Conductor.email == email))).scalar()
@@ -50,7 +50,7 @@ def create_user():
     if check_user:
         {'error': f'A user with that username and/or email already exists'}, 400
 
-    new_user = Conductor(first_name = first_name, last_name = last_name, username = username, email = email, password = password)
+    new_user = Conductor(first_name = first_name, last_name = last_name, email = email, username = username,  password = password)
 
     db.session.add(new_user)
     db.session.commit()
@@ -197,7 +197,7 @@ def delete_organization(org_id):
     current_user = token_auth.current_user()
 
     if org.conductor_id != current_user.id:
-        return {'error': f'User with user id {current_user.id} do not have permission to delete this post'}, 403
+        return {'error': f'User with user id {current_user.id} do not have permission to delete this organization'}, 403
 
     db.session.delete(org)
     db.session.commit()
@@ -265,7 +265,7 @@ def delete_choir(choir_id):
     current_user = token_auth.current_user()
 
     if choir.conductor_id != current_user.id:
-        return {'error': f'User with user id {current_user.id} do not have permission to delete this post'}, 403
+        return {'error': f'User with user id {current_user.id} do not have permission to delete this choir'}, 403
 
     db.session.delete(choir)
     db.session.commit()
@@ -358,7 +358,6 @@ def find_hymn(hymn_id):
     current_user = token_auth.current_user()
     current_organization = db.session.execute(db.select(Organization).where(Organization.conductor_id == current_user.id)).scalar()
     current_choir = db.session.execute(db.select(Choir).where(Choir.organization_id == current_organization.id)).scalar()
-    # Select a choir created by current user
 
     hymnal_number = hymn_id
     first_line = info.get('First Line:')
@@ -402,40 +401,44 @@ def find_hymn(hymn_id):
 
 # PROGRAM HYMNS --------------------------------
 
-@api.route('/program/<service_id>/<hymn_id>', methods=['POST'])
+@api.route('/program/<service_id>/<hymn_number>', methods=['POST'])
 @token_auth.login_required
-def program_hymn(service_id, hymn_id):
+def program_hymn(service_id, hymn_number):
     current_user = token_auth.current_user()
     
     selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
-    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
 
-    if not selected_service:
+    if selected_service is None:
         return {'error': f'Service with an id of {service_id} does not exist'}, 400
-    if not selected_hymn:
-        return {'error': f'Hymn with an id of {hymn_id} does not exist'}, 400
+    if selected_hymn is None:
+        return {'error': f'Hymn with an id of {hymn_number} does not exist'}, 400
+    
+    conductor_id = current_user.id
+    hymn_id_number = selected_hymn.id
+    service_id_number = selected_service.id
 
-    selected_service.service_date.append(selected_hymn)
+    new_program = Program(conductor_id = conductor_id, hymn_id = hymn_id_number, service_id = service_id_number)
+    db.session.add(new_program)
     db.session.commit()
 
     return selected_service.to_dict(),201
 
 # EDIT PROGRAM HYMNS --------------------------------
 
-@api.route('/program/<service_id>/<hymn_id>', methods=['DELETE'])
+@api.route('/program/<program_id>', methods=['DELETE'])
 @token_auth.login_required
-def edit_program_hymn(service_id, hymn_id):
-    
-    selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
-    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+def delete_hymn_from_service(program_id):
 
-    if not selected_service:
-        return {'error': f'Service with an id of {service_id} does not exist'}, 400
-    if not selected_hymn:
-        return {'error': f'Hymn with an id of {hymn_id} does not exist'}, 400
+    program_to_delete = db.session.get(Program, program_id)
 
-    selected_service.service_date.remove(selected_hymn)
+    if program_id is None:
+        return {'error': f'Program with an ID of {program_id} does not exist'}, 404
+    current_user = token_auth.current_user()
+
+    if program_to_delete.conductor_id != current_user.id:
+        return {'error': f'User with user id {current_user.id} do not have permission to edit this program'}, 403
+
+    db.session.delete(program_to_delete)
     db.session.commit()
-
-    return selected_service.to_dict(),201
-
+    return {'success': f"{program_to_delete.id} has been deleted"}

@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash,check_password_hash
 from flask_login import UserMixin
 
+# CONDUCTOR (USER) -------------------------------------------------
+
 class Conductor(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     first_name = db.Column(db.String(50), nullable = False)
@@ -16,6 +18,7 @@ class Conductor(db.Model, UserMixin):
     token = db.Column(db.String(32), index = True, unique = True)
     token_expiration = db.Column(db.DateTime)
     organization = db.relationship('Organization', backref = 'author', cascade = 'delete')
+    programs = db.relationship('Program', backref = 'conductor')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -52,6 +55,8 @@ class Conductor(db.Model, UserMixin):
     def load_user(user_id):
         return db.session.get(Conductor, user_id)
     
+# ORGANIZATION -------------------------------------------------
+
 class Organization(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
@@ -73,6 +78,9 @@ class Organization(db.Model, UserMixin):
             'name': self.name,
             'website': self.website,
         }
+
+# CHOIR -------------------------------------------------
+
     
 class Choir(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -91,7 +99,9 @@ class Choir(db.Model, UserMixin):
             'id': self.id,
             'name': self.name,
         }
-    
+
+# ADDRESS -------------------------------------------------
+
 class Address(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     address_one = db.Column(db.String(100), nullable = False)
@@ -115,17 +125,15 @@ class Address(db.Model, UserMixin):
             'zip code': self.zip_code
         }
 
+# JOIN TABLES-------------------------------------------------
+
 hymn_topic = db.Table(
     'hymn_topic', 
     db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
     db.Column('topic_id', db.Integer, db.ForeignKey('topic.id'))
     )
-
-hymn_service_date = db.Table(
-    'hymn_sunday', 
-    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
-    db.Column('service_id', db.Integer, db.ForeignKey('service.id'))
-    )
+    
+# HYMN -------------------------------------------------
 
 class Hymn(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -142,11 +150,9 @@ class Hymn(db.Model, UserMixin):
     key = db.Column(db.String(5))
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
-    tune_id = db.Column(db.Integer, db.ForeignKey('tune.id'))
-    service = db.relationship('Service', secondary = hymn_service_date, backref = 'hymns')
-
-    # Foreign Key
     choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
+    tune_id = db.Column(db.Integer, db.ForeignKey('tune.id'))
+    program = db.relationship('Program', backref = 'hymn')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -172,6 +178,8 @@ class Hymn(db.Model, UserMixin):
             'Audio recording:' : self.audio_rec, 
             }
 
+# TOPIC -------------------------------------------------
+
 class Topic(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     topic = db.Column(db.String(50), nullable = False)
@@ -188,10 +196,14 @@ class Topic(db.Model, UserMixin):
             'id': self.id,
             'Topic:': self.topic, 
             }
+    
+# SERVICE ------------------------------------------------- 
 
 class Service(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     date = db.Column(db.String(10), nullable = False)
+    program = db.relationship('Program', backref = 'service')
+
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -204,6 +216,9 @@ class Service(db.Model, UserMixin):
             'id': self.id,
             'Service Date:': self.date, 
             }
+
+# TUNE -------------------------------------------------
+
 
 class Tune(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -222,3 +237,17 @@ class Tune(db.Model, UserMixin):
             'id': self.id,
             'tune:': self.tune_name, 
             }
+    
+# PROGRAM -------------------------------------------------
+
+class Program(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key = True)
+    hymn_id = db.Column(db.Integer, db.ForeignKey('hymn.id'))
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
+    conductor_id = db.Column(db.Integer, db.ForeignKey('conductor.id'))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"< Program {self.id} | Service: {self.service_id} >"
