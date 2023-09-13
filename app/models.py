@@ -112,11 +112,16 @@ class Address(db.Model, UserMixin):
             'website': self.website,
         }
 
-
 hymn_topic = db.Table(
     'hymn_topic', 
     db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
     db.Column('topic_id', db.Integer, db.ForeignKey('topic.id'))
+    )
+
+hymn_service_date = db.Table(
+    'hymn_sunday', 
+    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
+    db.Column('service_id', db.Integer, db.ForeignKey('service.id'))
     )
 
 class Hymn(db.Model, UserMixin):
@@ -135,7 +140,7 @@ class Hymn(db.Model, UserMixin):
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
     tune_id = db.Column(db.Integer, db.ForeignKey('tune.id'))
-    # topics = db.relationship('Topic', secondary = hymn_topic, backref = 'hymn')
+    service = db.relationship('Service', secondary = hymn_service_date, backref = 'hymns')
 
     # Foreign Key
     choir_id = db.Column(db.Integer, db.ForeignKey('choir.id')) 
@@ -181,17 +186,9 @@ class Topic(db.Model, UserMixin):
             'Topic:': self.topic, 
             }
 
-hymn_service_date = db.Table(
-    'hymn_sunday', 
-    db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
-    db.Column('service_id', db.Integer, db.ForeignKey('service.id'))
-    )
-
 class Service(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     date = db.Column(db.String(10), nullable = False)
-    hymns = db.relationship('Hymn', secondary = hymn_service_date, backref = 'service_date')
-
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -204,12 +201,6 @@ class Service(db.Model, UserMixin):
             'id': self.id,
             'Service Date:': self.date, 
             }
-
-# hymn_tune = db.Table(
-#     'hymn_tune', 
-#     db.Column('hymn_id', db.Integer, db.ForeignKey('hymn.id')),
-#     db.Column('tune_id', db.Integer, db.ForeignKey('tune.id'))
-#     )
 
 class Tune(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)

@@ -368,17 +368,34 @@ def program_hymn(service_id, hymn_id):
     current_user = token_auth.current_user()
     
     selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
-    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.id == hymn_id)).scalar()
-    print(hymn_id)
+    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+
     if not selected_service:
         return {'error': f'Service with an id of {service_id} does not exist'}, 400
     if not selected_hymn:
         return {'error': f'Hymn with an id of {hymn_id} does not exist'}, 400
 
     selected_service.service_date.append(selected_hymn)
-
     db.session.commit()
 
     return selected_service.to_dict(),201
 
+# EDIT PROGRAM HYMNS --------------------------------
+
+@api.route('/program/<service_id>/<hymn_id>', methods=['DELETE'])
+@token_auth.login_required
+def edit_program_hymn(service_id, hymn_id):
+    
+    selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
+    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+
+    if not selected_service:
+        return {'error': f'Service with an id of {service_id} does not exist'}, 400
+    if not selected_hymn:
+        return {'error': f'Hymn with an id of {hymn_id} does not exist'}, 400
+
+    selected_service.service_date.remove(selected_hymn)
+    db.session.commit()
+
+    return selected_service.to_dict(),201
 
