@@ -337,6 +337,10 @@ def create_hymn():
 @token_auth.login_required
 def find_hymn(hymn_id):
 
+    check_db_hymn = db.session.execute(db.select(Hymn).where((Hymn.hymnal_number == hymn_id))).scalar()
+    if check_db_hymn:
+        return check_db_hymn.to_dict(),201
+
     url = f'https://hymnary.org/hymn/GG2013/{hymn_id}'
     result = requests.get(url).text
     doc = BeautifulSoup(result, 'html.parser')
@@ -387,11 +391,6 @@ def find_hymn(hymn_id):
     audio_rec = info.get('Audio recording:')
     choir_id =  current_choir.id
     
-    check_hymn = db.session.execute(db.select(Hymn).where((Hymn.title == title))).scalar()
-
-    if check_hymn:
-        return {'error': f'A hymn with that title already'}, 400
-    
     new_tune = Tune(tune_name=tune_name)
     db.session.add(new_tune)
     db.session.commit()
@@ -404,7 +403,7 @@ def find_hymn(hymn_id):
 
     # Create Relationship for hymn_topic table
     for topic in info.get('Topic:'):
-        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()   
+        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
         new_hymn.topics.append(selected_topic)
 
     db.session.commit()
