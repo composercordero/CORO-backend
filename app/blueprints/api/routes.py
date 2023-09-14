@@ -89,6 +89,19 @@ def delete_user():
     return {'success': f"{auth_user.first_name} has been deleted"}, 201
 
 
+# GET USER PROGRAMS --------------------------------------------------
+
+@api.route('/users/programs')
+@token_auth.login_required
+def get_user_programs():
+    current_user = token_auth.current_user()
+    programs = [p.to_dict() for p in current_user.programs]
+    programs_li=[]
+    for p in programs:
+        programs_li.append({ 'key': f"{p['id']}", 'service': f"{p['service']['Service Date:']}", 'hymnalnum': f"{p['hymn']['Hymnal Number:']}", 'title': f"{p['hymn']['Title:']}", 'tune': f"{p['hymn']['Tune Name:']}", 'key_mus': f"{p['hymn']['Key:']}", 'topics': [t['Topic:'] for t in p['hymn']['Topics:']]})
+
+    return programs_li
+
 # CREATE ADDRESS --------------------------------------------------
 
 @api.route('/address', methods=['POST'])
@@ -391,7 +404,7 @@ def find_hymn(hymn_id):
 
     # Create Relationship for hymn_topic table
     for topic in info.get('Topic:'):
-        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
+        selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()   
         new_hymn.topics.append(selected_topic)
 
     db.session.commit()

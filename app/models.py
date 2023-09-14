@@ -30,7 +30,7 @@ class Conductor(db.Model, UserMixin):
     def check_password(self, password_guess):
         return check_password_hash(self.password, password_guess)
     
-    def get_token(self, expires_in = 3600):
+    def get_token(self, expires_in=7200):
         now = datetime.utcnow()
         if self.token and self.token_expiration > now + timedelta(seconds = 60):
             return self.token
@@ -48,7 +48,8 @@ class Conductor(db.Model, UserMixin):
             'id': self.id,
             'name': f'{self.first_name} {self.last_name}',
             'email': self.email,
-            'username': self.username
+            'username': self.username,
+            'token expiration': self.token_expiration
         }
 
     @login.user_loader
@@ -175,7 +176,8 @@ class Hymn(db.Model, UserMixin):
             'Arranger:': self.arranger, 
             'Key:': self.key, 
             'Source:': self.source, 
-            'Audio recording:' : self.audio_rec, 
+            'Audio recording:' : self.audio_rec,
+            'Topics:': [t.to_dict() for t in self.topics], 
             }
 
 # TOPIC -------------------------------------------------
@@ -251,3 +253,11 @@ class Program(db.Model, UserMixin):
 
     def __repr__(self):
         return f"< Program {self.id} | Service: {self.service_id} >"
+    
+    def to_dict(self):
+        return  {
+            'id': self.id,
+            'hymn': self.hymn.to_dict(),
+            'service': self.service.to_dict(), 
+            }
+    
