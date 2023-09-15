@@ -46,7 +46,8 @@ class Conductor(db.Model, UserMixin):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': f'{self.first_name} {self.last_name}',
+            'firstName': self.first_name,
+            'lastName': self.last_name,
             'email': self.email,
             'username': self.username,
             'token expiration': self.token_expiration

@@ -98,7 +98,7 @@ def get_user_programs():
     programs = [p.to_dict() for p in current_user.programs]
     programs_li=[]
     for p in programs:
-        programs_li.append({ 'key': f"{p['id']}", 'service': f"{p['service']['Service Date:']}", 'hymnalnum': f"{p['hymn']['Hymnal Number:']}", 'title': f"{p['hymn']['Title:']}", 'tune': f"{p['hymn']['Tune Name:']}", 'key_mus': f"{p['hymn']['Key:']}", 'topics': [t['Topic:'] for t in p['hymn']['Topics:']]})
+        programs_li.append({ 'key': f"{p['id']}", 'service': f"{p['service']['Service Date:']}", 'hymnalnum': f"{p['hymn']['Hymnal Number:']}", 'title': f"{p['hymn']['Title:']}", 'tune': f"{p['hymn']['Tune Name:']}", 'key_mus': f"{p['hymn']['Key:']}", 'topics': [f"{t['Topic:']} / " for t in p['hymn']['Topics:']]})
 
     return programs_li
 
@@ -404,12 +404,33 @@ def find_hymn(hymn_id):
     # Create Relationship for hymn_topic table
     for topic in info.get('Topic:'):
         selected_topic = db.session.execute(db.select(Topic).where((Topic.topic == topic))).scalar()
-        new_hymn.topics.append(selected_topic)
+        if selected_topic:
+            new_hymn.topics.append(selected_topic)
 
     db.session.commit()
 
     return new_hymn.to_dict(),201
 
+# # DISPLAY HYMN --------------------------------
+
+@api.route('/hymns/display/<hymn_id>', methods=['GET'])
+@token_auth.login_required
+def display_hymn(hymn_id):
+
+    hymn_to_display = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+
+    hymn_to_return = [
+        { 'key': '1', 'label': 'Title', 'children': f'{hymn_to_display.title}', }, 
+        { 'key': '2', 'label': 'Number', 'children': f'{hymn_to_display.hymnal_number}', }, 
+        { 'key': '3', 'label': 'Tune', 'children': f'{hymn_to_display.tune_name}', }, 
+        { 'key': '4', 'label': 'Key', 'children': f'{hymn_to_display.key}', }, 
+        { 'key': '5', 'label': 'Last Programmed', 'span': 2, 'children': '2019-04-24', }, 
+        { 'key': '6', 'label': 'Author', 'children': 'John Ernest Bode', }, 
+        { 'key': '7', 'label': 'Meter', 'children': f'{hymn_to_display.meter}', }, 
+        { 'key': '8', 'label': 'Language', 'children': f'{hymn_to_display.language}', }, 
+        { 'key': '9', 'label': 'Copyright', 'children': f'{hymn_to_display.copyright}' }]
+    
+    return hymn_to_return, 201
 
 # # PROGRAM HYMNS --------------------------------
 
