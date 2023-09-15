@@ -1,255 +1,72 @@
-# CORO
+# CORO - Programming App for Church Choirs
 
-## Description
+CORO is a programming app for church choirs that allows staff to have a solid management on the music of the church.
 
-The Concert Programming App that you always needed. CORO helps you plan, report, and keep your organization's repertoire up to date. Streamline your process and focus on what your rehearsals more.
+I started this app with much care during my time in [Coding Temple](https://www.codingtemple.com/software-engineering/)'s Full-Stack Software Engineering, [Brian Stanton](https://www.linkedin.com/in/brian-stanton-5aa63270/) and [Sarah Stodder](https://www.linkedin.com/in/sarah-stodder-0317b3153/) instructors.
 
 
-## Usage
+## React + Flask
 
-### Installing
+To create this first iteration of CORO, I used React.js (Vite, TypeScript) for the Front-End, Flask for the Back-End. SQLite and Postman to manage the DataBase.
 
-In order to use this makefile you will need to make sure that the following dependencies are installed on your system:
-  - GNU make
-  - Pandoc
-  - LuaLaTeX
-  - DejaVu Sans fonts
+If you would like to watch a short demo, and hear me sing a demo of one of my favorite choral pieces, check out this YouTube video:
 
-### Folder structure
+[CORO - Programming App for Church Choirs](https://youtu.be/OY7DaGMgrXw?si=ZhS4kehPlP2sI3vj)
 
-```
-my-document/     # Root directory.
-|- build/        # Folder used to store builded (output) files.
-|- src/          # Markdowns files; one for each chapter.
-|- images/       # Images folder.
-|- metadata.yml  # Metadata content (title, author...).
-|- Makefile      # Makefile used for building our documents.
-```
+To install this on your end, follow these instructions
 
-### Setup generic data
-
-Edit the *metadata.yml* file to set configuration data:
+1. Clone both repositories
 
 ```yml
----
-title: My document title
-author: Ralph Huwiler
-rights:  Creative Commons Attribution 4.0 International
-language: en-US
-tags: [document, my-document, etc]
-abstract: |
-  Your summary text.
----
+   $ git clone https://github.com/composercordero/CORO-frontend.git
+   $ git clone https://github.com/composercordero/CORO-backend.git
 ```
+2. Open the Back-End Flask App:
+```md
+   # Create a Virtual Environment (venv):
+   $ python -m venv venv
+   (if mac, python3...)
 
-You can find the list of all available keys on [this
-page](http://pandoc.org/MANUAL.html#extension-yaml_metadata_block).
+   # Install the modules in requirements.txt:
+   $ pip install -r requirements.txt
+   (if mac, pip3...)
 
-### Creating chapters
-
-Creating a new chapter is as simple as creating a new markdown file in the
-*src/* folder; you'll end up with something like this:
+   # Run the app:
+   $ flask --debug run --port 8080
 
 ```
-src/01-introduction.md
-src/02-installation.md
-src/03-usage.md
-src/04-references.md
-```
-
-Pandoc and Make will join them automatically ordered by name; that's why the
-numeric prefixes are being used.
-
-All you need to specify for each chapter at least one title:
+3. Now open the Front-End project
 
 ```md
-# Introduction
+   # Run the app:
+   $ npm run dev
 
-This is the first paragraph of the introduction chapter.
-
-## First
-
-This is the first subsection.
-
-## Second
-
-This is the second subsection.
+   # Open the link from your terminal in your browser:
+   
+   It will be something like
+   http://localhost:5173/
 ```
 
-Each title (*#*) will represent a chapter, while each subtitle (*##*) will
-represent a chapter's section. You can use as many levels of sections as
-markdown supports.
+## First Iteration
 
-#### Links between chapters
+09/15/2023: This version is the demo, including text generated in [Neil deGrasse Tyson Ipsum](http://neilipsum.pw/). The app allow users to create an account, add hymns and research them.
 
-Anchor links can be used to link chapters within the document:
+## Next Iterations
 
-```md
-// src/01-introduction.md
-# Introduction
+I am looking forward to add many more features, such as:
 
-For more information, check the [Usage] chapter.
+- Contact form
+- Bulletin and Reporting Printing (PDF)
+- Hymn Suggestions based on scriptures and dates
+- My Library section
+- Other Hymnals besides Glory To God (Presbyterian Hymn)
+- Ultimately pair this web app with an iPad application (Reason why the website is not responsive).
 
-// src/02-installation.md
-# Usage
+## Vision
+The Concert Programming App that you always needed. CORO helps you plan, report, and keep your organization's repertoire up to date. Streamline your process and focus on what your rehearsals more.
 
-...
-```
+## Contact
+If you are interested in collaborating or have questions, please contact me at composer.cordero@gmail.com
 
-If you want to rename the reference, use this syntax:
-
-```md
-For more information, check [this](#usage) chapter.
-```
-
-Anchor names should be downcased, and spaces, colons, semicolons... should be
-replaced with hyphens. Instead of `Chapter title: A new era`, you have:
-`#chapter-title-a-new-era`.
-
-#### Links between sections
-
-It's the same as anchor links:
-
-```md
-# Introduction
-
-## First
-
-For more information, check the [Second] section.
-
-## Second
-
-...
-```
-
-Or, with al alternative name:
-
-```md
-For more information, check [this](#second) section.
-```
-
-### Inserting objects
-
-Text. That's cool. What about images and tables?
-
-#### Insert an image
-
-Use Markdown syntax to insert an image with a caption:
-
-```md
-![A cool seagull.](images/seagull.png)
-```
-
-Pandoc will automatically convert the image into a figure (image + caption).
-
-If you want to resize the image, you may use this syntax, available in Pandoc
-1.16:
-
-```md
-![A cool seagull.](images/seagull.png){ width=50% height=50% }
-```
-
-Also, to reference an image, use LaTeX labels:
-
-```md
-Please, admire the gloriousnes of Figure \ref{seagull_image}.
-
-![A cool seagull.\label{seagull_image}](images/seagull.png)
-```
-
-#### Insert a table
-
-Use markdown table, and use the `Table: <Your table description>` syntax to add
-a caption:
-
-```md
-| Index | Name |
-| ----- | ---- |
-| 0     | AAA  |
-| 1     | BBB  |
-| ...   | ...  |
-
-Table: This is an example table.
-```
-
-If you want to reference a table, use LaTeX labels:
-
-```md
-Please, check Table /ref{example_table}.
-
-| Index | Name |
-| ----- | ---- |
-| 0     | AAA  |
-| 1     | BBB  |
-| ...   | ...  |
-
-Table: This is an example table.\label{example_table}
-```
-
-#### Insert an equation
-
-Wrap a LaTeX math equation between `$` delimiters for inline (tiny) formulas:
-
-```md
-This, $\mu = \sum_{i=0}^{N} \frac{x_i}{N}$, the mean equation, ...
-```
-
-Pandoc will transform them automatically into images using online services.
-
-If you want to center the equation instead of inlining it, use double `$$`
-delimiters:
-
-```md
-$$\mu = \sum_{i=0}^{N} \frac{x_i}{N}$$
-```
-
-[Here](https://www.codecogs.com/latex/eqneditor.php)'s an online equation
-editor.
-
-### Output
-
-This template uses *Makefile* to automatize the building process. Instead of
-using the *pandoc cli util*, we're going to use some *make* commands.
-
-#### Export to PDF
-
-Use this command:
-
-```sh
-make pdf
-```
-
-The generated file will be placed in *build/pdf*.
-
-Please, note that PDF file generation requires some extra dependencies (~ 800
-MB):
-
-```sh
-sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-latex-extra 
-```
-
-#### Export to EPUB
-
-Use this command:
-
-```sh
-make epub
-```
-
-The generated file will be placed in *build/epub*.
-
-#### Export to HTML
-
-Use this command:
-
-```sh
-make html
-```
-
-The generated file(s) will be placed in *build/html*.
-
-## References
-
-- [Pandoc](http://pandoc.org/)
-- [Pandoc Manual](http://pandoc.org/MANUAL.html)
-- [Wikipedia: Markdown](http://wikipedia.org/wiki/Markdown)
+## Muchas Gracias
+With many thanks to Brian Stanton, Sarah Stodder, and the team at hymmnary.org, Dr. Harry Platinga, Will Groenendyk, and Ann Brown. 
