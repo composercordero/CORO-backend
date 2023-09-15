@@ -411,18 +411,43 @@ def find_hymn(hymn_id):
     return new_hymn.to_dict(),201
 
 
+# # PROGRAM HYMNS --------------------------------
+
+# @api.route('/program/<service_id>/<hymn_number>', methods=['POST'])
+# @token_auth.login_required
+# def program_hymn(service_id, hymn_number):
+#     current_user = token_auth.current_user()
+    
+#     selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
+#     selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
+
+#     if selected_service is None:
+#         return {'error': f'Service with an id of {service_id} does not exist'}, 400
+#     if selected_hymn is None:
+#         return {'error': f'Hymn with an id of {hymn_number} does not exist'}, 400
+    
+#     conductor_id = current_user.id
+#     hymn_id_number = selected_hymn.id
+#     service_id_number = selected_service.id
+
+#     new_program = Program(conductor_id = conductor_id, hymn_id = hymn_id_number, service_id = service_id_number)
+#     db.session.add(new_program)
+#     db.session.commit()
+
+#     return selected_service.to_dict(),201
+
 # PROGRAM HYMNS --------------------------------
 
-@api.route('/program/<service_id>/<hymn_number>', methods=['POST'])
+@api.route('/program/<service_date>/<hymn_number>', methods=['POST'])
 @token_auth.login_required
-def program_hymn(service_id, hymn_number):
+def program_hymn_by_date(service_date, hymn_number):
     current_user = token_auth.current_user()
     
-    selected_service = db.session.execute(db.select(Service).where((Service.id == service_id))).scalar()
+    selected_service = db.session.execute(db.select(Service).where((Service.date == service_date))).scalar()
     selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
 
     if selected_service is None:
-        return {'error': f'Service with an id of {service_id} does not exist'}, 400
+        return {'error': f'Service with a date of {service_date} does not exist'}, 400
     if selected_hymn is None:
         return {'error': f'Hymn with an id of {hymn_number} does not exist'}, 400
     
@@ -438,14 +463,16 @@ def program_hymn(service_id, hymn_number):
 
 # EDIT PROGRAM HYMNS --------------------------------
 
-@api.route('/program/<program_id>', methods=['DELETE'])
+@api.route('program/<service_date>/<hymn_number>', methods=['DELETE'])
 @token_auth.login_required
-def delete_hymn_from_service(program_id):
+def delete_hymn_from_service(service_date, hymn_number):
 
-    program_to_delete = db.session.get(Program, program_id)
+    selected_service = db.session.execute(db.select(Service).where((Service.date == service_date))).scalar()
+    selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
+    program_to_delete = db.session.execute(db.select(Program).where(Program.service_id == selected_service.id and Program.hymn_id == selected_hymn.id)).scalar()
 
-    if program_id is None:
-        return {'error': f'Program with an ID of {program_id} does not exist'}, 404
+    if program_to_delete is None:
+        return {'error': f'Program does not exist'}, 404
     current_user = token_auth.current_user()
 
     if program_to_delete.conductor_id != current_user.id:
