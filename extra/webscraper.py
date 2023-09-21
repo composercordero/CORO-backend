@@ -1,9 +1,10 @@
 from bs4 import BeautifulSoup
 import requests
+import re
 
 # url = f'https://hymnary.org/hymn/{hymnal}/{number}'
 
-url = 'https://hymnary.org/hymn/GG2013/723'
+url = 'https://hymnary.org/hymn/GG2013/2'
 result = requests.get(url).text
 doc = BeautifulSoup(result, 'html.parser')
 
@@ -28,6 +29,10 @@ for tr in trs:
             info[key_name] = f'{td[2].span.contents[0].string}{td[2].span.span.string}'.split('; ')
         elif key_name == 'Audio recording:':
             info[key_name] = td[2].a.get('href')
+        elif key_name == 'Composer:':
+            info[key_name] = td[2].span.a.string
+        elif key_name == 'Source:':
+            info[key_name] = td[2].span.contents[0].string
         else:
             info[key_name] = td[2].a.string
     
@@ -48,3 +53,17 @@ info = {
     'Key:': 'F Major', 
     'Source:': 'Scottish melody', 
     'Audio recording:': 'https://hymnary.org/media/fetch/150503/hymnary/audio/GG2013/726-WillYourCome_accomp.mp3'}
+
+info_two = {
+    'First Line:': 'Come, thou almighty King', 
+    'Title:': 'Come, Thou Almighty King', 
+
+    'Meter:': '6.6.4.6.6.6.4.',
+    'Language:': 'English', 
+    'Publication Date:': '2013', 
+    'Scripture:': ['Exodus 15:18', '1 Chronicles 29:11-12', 'Psalm 29:2', 'Psalm 45:3-4', 'Psalm 47:7-8', 'Psalm 83:18', 'Psalm 103:19', 'Daniel 7:9', 'Daniel 7:13', 'Daniel 7:22', 'John 1:14', 'John 14:16-17', 'Romans 8:16', 'Ephesians 6:17', 'Revelation 19:11-16'], 
+    'Topic:': ['Adoration', 'Christian Year: Trinity', 'Gift of the Holy Spirit', 'Incarnation', 'Sovereignty of God', 'The Triune God'], 
+
+    'Name:': 'ITALIAN HYMN', 
+    'Key:': 'F Major', 
+    'Audio recording:': 'https://hymnary.org/media/fetch/148337/hymnary/audio/GG2013/002-come%20thou%20almighty.mp3'}

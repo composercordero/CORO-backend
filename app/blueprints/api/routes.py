@@ -366,6 +366,10 @@ def find_hymn(hymn_id):
                 info[key_name] = f'{td[2].span.contents[0].string}{td[2].span.span.string}'.split('; ')
             elif key_name == 'Audio recording:':
                 info[key_name] = td[2].a.get('href')
+            elif key_name == 'Composer:':
+                info[key_name] = td[2].span.a.string
+            elif key_name == 'Source:':
+                info[key_name] = td[2].span.contents[0].string
             else:
                 info[key_name] = td[2].a.string
 
@@ -386,6 +390,7 @@ def find_hymn(hymn_id):
     copyright = info.get('Copyright:')
     tune_name = info.get('Name:')
     arranger = info.get('Arranger:')
+    composer = info.get('Composer:')
     key = info.get('Key:')
     source = info.get('Source:')
     audio_rec = info.get('Audio recording:')
@@ -397,7 +402,7 @@ def find_hymn(hymn_id):
 
     selected_tune = db.session.execute(db.select(Tune).where(Tune.tune_name == info.get('Name:'))).scalar()
 
-    new_hymn = Hymn(hymnal_number = hymnal_number, first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id, tune_id = selected_tune.id)
+    new_hymn = Hymn(hymnal_number = hymnal_number, first_line = first_line, title = title, author = author, meter = meter, language = language, pub_date = pub_date, copyright = copyright, tune_name = tune_name, arranger = arranger, composer = composer, key = key, source = source, audio_rec = audio_rec, choir_id = choir_id, tune_id = selected_tune.id)
 
     db.session.add(new_hymn)
 
@@ -418,6 +423,9 @@ def find_hymn(hymn_id):
 def display_hymn(hymn_id):
 
     hymn_to_display = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_id)).scalar()
+
+    if not hymn_to_display:
+        return {'error:': 'Hymn not in your database'}
 
     hymn_to_return = [
         { 'key': '1', 'label': 'Title', 'children': f'{hymn_to_display.title}', }, 

@@ -149,6 +149,7 @@ class Hymn(db.Model, UserMixin):
     copyright = db.Column(db.String(200))
     tune_name = db.Column(db.String(20), nullable = False)
     arranger = db.Column(db.String(50))
+    composer = db.Column(db.String(50))
     key = db.Column(db.String(5))
     source = db.Column(db.String(100))
     audio_rec = db.Column(db.String(200))
@@ -169,6 +170,7 @@ class Hymn(db.Model, UserMixin):
             'First Line:': self.first_line, 
             'Title:': self.title, 
             'Author:': self.author, 
+            'Composer:': self.composer, 
             'Meter:': self.meter, 
             'Language:': self.language, 
             'Publication Date:': self.pub_date, 
