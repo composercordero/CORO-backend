@@ -72,9 +72,15 @@ def login_user():
 def edit_user():
     auth_user = token_auth.current_user()
     data = request.json
+    print('//////////', data)
     for field in data:
-        if field in {'first_name', 'last_name', 'username', 'email', 'password'}:
-            setattr(auth_user, field, data[field])
+        if field in {'firstName', 'lastName', 'username', 'email'}:
+            if field == 'firstName':
+                setattr(auth_user, 'first_name', data[field])
+            elif field == 'lastName':
+                setattr(auth_user, 'last_name', data[field])
+            else:
+                setattr(auth_user, field, data[field])
     db.session.commit()
     return auth_user.to_dict(),201
 
@@ -497,13 +503,13 @@ def program_hymn_by_date(service_date, hymn_number):
 def delete_hymn_from_service(service_date, hymn_number):
 
     current_user = token_auth.current_user()
-    # print('current user', current_user.id)
+    # print('current user id:', current_user.id)
     selected_service = db.session.execute(db.select(Service).where((Service.date == service_date))).scalar()
-    # print('service date', selected_service.id)
+    # print('selected service date:', selected_service.id)
     selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
-    # print('hymn number', selected_hymn.id)
+    # print('selected hymn number:', selected_hymn.id)
     program_to_delete = db.session.execute(db.select(Program).where((Program.service_id == selected_service.id) & (Program.hymn_id == selected_hymn.id) & (Program.conductor_id == current_user.id))).scalar()
-    # print('program', program_to_delete)
+    # print('program to delete:', program_to_delete)
 
     if program_to_delete is None:
         return {'error': f'Program does not exist'}, 404
