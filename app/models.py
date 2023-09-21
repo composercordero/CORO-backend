@@ -161,7 +161,7 @@ class Hymn(db.Model, UserMixin):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return f"< Hymn {self.id} | {self.title} >"
+        return f"< Hymn {self.hymnal_number} | {self.title} >"
 
     def to_dict(self):
         return {

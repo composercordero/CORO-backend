@@ -225,7 +225,7 @@ def create_choir():
         return{'error': 'Your content-type must be application/json'}, 400
     data = request.json
 
-    name = data.get('name')
+    name = data.get('choirName')
     current_user = token_auth.current_user()
     current_organization = db.session.execute(db.select(Organization).where(Organization.conductor_id == current_user.id)).scalar()
     
@@ -496,13 +496,19 @@ def program_hymn_by_date(service_date, hymn_number):
 @token_auth.login_required
 def delete_hymn_from_service(service_date, hymn_number):
 
+    current_user = token_auth.current_user()
+    # print('current user', current_user.id)
     selected_service = db.session.execute(db.select(Service).where((Service.date == service_date))).scalar()
+    # print('service date', selected_service.id)
     selected_hymn = db.session.execute(db.select(Hymn).where(Hymn.hymnal_number == hymn_number)).scalar()
-    program_to_delete = db.session.execute(db.select(Program).where(Program.service_id == selected_service.id and Program.hymn_id == selected_hymn.id)).scalar()
+    # print('hymn number', selected_hymn.id)
+    program_to_delete = db.session.execute(db.select(Program).where((Program.service_id == selected_service.id) & (Program.hymn_id == selected_hymn.id) & (Program.conductor_id == current_user.id))).scalar()
+    # print('program', program_to_delete)
 
     if program_to_delete is None:
         return {'error': f'Program does not exist'}, 404
-    current_user = token_auth.current_user()
+    
+    print('program to delete conductor id',  program_to_delete.conductor_id)
 
     if program_to_delete.conductor_id != current_user.id:
         return {'error': f'User with user id {current_user.id} do not have permission to edit this program'}, 403
