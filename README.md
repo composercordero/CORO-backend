@@ -9,6 +9,8 @@ I started this app with much care during my time in [Coding Temple](https://www.
 
 To create this first iteration of CORO, I used React.js (Vite, TypeScript) for the Front-End, Flask for the Back-End. SQLite and Postman to manage the DataBase.
 
+Live Demo: https://coro-c0530.web.app/
+
 If you would like to watch a short demo, and hear me sing a demo of one of my favorite choral pieces, check out this YouTube video:
 
 [CORO - Programming App for Church Choirs](https://youtu.be/OY7DaGMgrXw?si=ZhS4kehPlP2sI3vj)
